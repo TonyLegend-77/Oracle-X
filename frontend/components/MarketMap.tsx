@@ -83,7 +83,7 @@ export default function MarketMap({ data, activePath }: { data: MarketMapData; a
 
     const link = g
       .append("g")
-      .selectAll("line")
+      .selectAll<SVGLineElement, Edge>("line")
       .data(edges)
       .join("line")
       .attr("stroke", (d) => (d.correlation >= 0 ? "#4FD1C5" : "#F0554C"))
@@ -92,7 +92,7 @@ export default function MarketMap({ data, activePath }: { data: MarketMapData; a
 
     const node = g
       .append("g")
-      .selectAll("g")
+      .selectAll<SVGGElement, Node>("g")
       .data(nodes)
       .join("g")
       .attr("cursor", "grab")
