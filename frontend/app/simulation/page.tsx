@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { api, Signal, SimulationResult } from "@/lib/api";
 
@@ -8,7 +8,7 @@ function fmt(v: number) {
   return v.toFixed(v < 10 ? 4 : 2);
 }
 
-export default function SimulationPage() {
+function SimulationContent() {
   const params = useSearchParams();
   const signalId = params.get("signal");
 
@@ -132,5 +132,17 @@ function SimStat({ label, value, accentColor }: { label: string; value: string; 
       <div className="text-data-sm text-text-muted">{label}</div>
       <div className={`mt-1 font-mono text-data-md tabular ${accentColor ?? "text-text-primary"}`}>{value}</div>
     </div>
+  );
+}
+
+export default function SimulationPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6 text-data-sm text-text-muted">Loading…</div>
+      }
+    >
+      <SimulationContent />
+    </Suspense>
   );
 }
