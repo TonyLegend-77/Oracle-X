@@ -90,29 +90,29 @@ export default function MarketMap({ data, activePath }: { data: MarketMapData; a
       .attr("stroke-opacity", (d) => 0.15 + Math.abs(d.correlation) * 0.35)
       .attr("stroke-width", (d) => 0.5 + Math.abs(d.correlation) * 2);
 
+    const dragBehavior = drag<SVGGElement, Node>()
+      .on("start", (event, d) => {
+        if (!event.active) simulation.alphaTarget(0.2).restart();
+        d.fx = d.x;
+        d.fy = d.y;
+      })
+      .on("drag", (event, d) => {
+        d.fx = event.x;
+        d.fy = event.y;
+      })
+      .on("end", (event, d) => {
+        if (!event.active) simulation.alphaTarget(0);
+        d.fx = null;
+        d.fy = null;
+      });
+
     const node = g
       .append("g")
       .selectAll<SVGGElement, Node>("g")
       .data(nodes)
       .join("g")
       .attr("cursor", "grab")
-      .call(
-        drag<SVGGElement, Node>()
-          .on("start", (event, d) => {
-            if (!event.active) simulation.alphaTarget(0.2).restart();
-            d.fx = d.x;
-            d.fy = d.y;
-          })
-          .on("drag", (event, d) => {
-            d.fx = event.x;
-            d.fy = event.y;
-          })
-          .on("end", (event, d) => {
-            if (!event.active) simulation.alphaTarget(0);
-            d.fx = null;
-            d.fy = null;
-          })
-      );
+      .call(dragBehavior as any);
 
     node
       .append("circle")
