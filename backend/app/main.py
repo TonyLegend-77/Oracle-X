@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import routes_signals, routes_market, routes_simulate, routes_backtest
 from app.db_init import apply_schema
+from app.scheduler import start_background_jobs
 
 app = FastAPI(title="Oracle X", description="AI cross-market alpha engine")
 
@@ -19,7 +20,7 @@ app.include_router(routes_backtest.router)
 
 
 @app.on_event("startup")
-def on_startup():
+async def on_startup():
     try:
         apply_schema()
     except Exception as exc:
@@ -27,6 +28,12 @@ def on_startup():
         # apply failure (e.g. DB not reachable yet) shouldn't take down
         # /health, which is useful for debugging a bad deploy.
         print(f"schema apply failed on startup: {exc}")
+
+    # Fires off every ingestion/pipeline job as a background task. This is
+    # what makes the app self-sufficient with zero manual `python -m
+    # app.jobs.X` invocation — required since there's no terminal access
+    # in a phone-only workflow.
+    start_background_jobs()
 
 
 @app.get("/health")
