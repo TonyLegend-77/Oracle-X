@@ -45,92 +45,70 @@ export default function SimulationView() {
 
   if (!signalId) {
     return (
-      <div className="flex h-full items-center justify-center text-data-sm text-text-muted">
+      <div style={{ display: "flex", height: "100%", alignItems: "center", justifyContent: "center", fontSize: 13, color: "var(--text-muted)" }}>
         Select a signal from the Signals page to simulate.
       </div>
     );
   }
 
   if (!signal) {
-    return <div className="p-6 text-data-sm text-text-muted">Loading signal…</div>;
+    return <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Loading signal…</p>;
   }
 
   return (
-    <div className="mx-auto max-w-2xl p-6">
-      <div className="mb-6 flex items-baseline gap-3">
-        <span className="font-mono text-data-lg text-text-primary">{signal.asset}</span>
-        <span className={`font-mono ${signal.direction === "LONG" ? "text-long" : "text-short"}`}>
+    <div style={{ maxWidth: 640 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 20 }}>
+        <span className="mono" style={{ fontSize: 28, fontWeight: 600 }}>{signal.asset}</span>
+        <span className={`mono ${signal.direction === "LONG" ? "up" : "down"}`} style={{ fontSize: 16, fontWeight: 600 }}>
           {signal.direction}
         </span>
-        <span className="text-data-sm text-text-muted">Alpha {Math.round(signal.alpha_score)}</span>
+        <span style={{ fontSize: 13, color: "var(--text-muted)" }}>Alpha {Math.round(signal.alpha_score)}</span>
       </div>
 
       {!sim ? (
-        <div className="border hairline bg-panel p-6">
-          <p className="mb-4 text-sm text-text-secondary">
-            Run the Simulation Engine against current market data — entry, stop, target, and R:R
-            are computed from this signal's expected move and Risk Gate's stop-distance parameters.
+        <div className="panel" style={{ padding: 24 }}>
+          <p style={{ fontSize: 13.5, color: "var(--text-secondary)", marginBottom: 16, lineHeight: 1.6 }}>
+            Run the Simulation Engine against current market data — entry, stop, target, and R:R are
+            computed from this signal&apos;s expected move and Risk Gate&apos;s stop-distance parameters.
           </p>
-          <button
-            onClick={runSimulation}
-            className="border border-signal/40 px-4 py-2 font-mono text-data-sm text-signal hover:bg-signal/10"
-          >
-            Simulate trade
-          </button>
-          {error && <p className="mt-3 text-data-sm text-short">{error}</p>}
+          <button onClick={runSimulation} className="sim-btn mono">Simulate trade</button>
+          {error && <p style={{ marginTop: 12, fontSize: 13, color: "var(--short)" }}>{error}</p>}
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-3 gap-px border hairline bg-border">
-            <SimStat label="Entry" value={fmt(sim.entry)} />
-            <SimStat label="Stop" value={fmt(sim.stop)} accentColor="text-short" />
-            <SimStat label="Target" value={fmt(sim.target)} accentColor="text-long" />
+          <div className="sim-stats">
+            <div className="sim-stat"><div className="l">Entry</div><div className="v mono tabular">{fmt(sim.entry)}</div></div>
+            <div className="sim-stat"><div className="l">Stop</div><div className="v mono tabular down">{fmt(sim.stop)}</div></div>
+            <div className="sim-stat"><div className="l">Target</div><div className="v mono tabular up">{fmt(sim.target)}</div></div>
           </div>
-          <div className="mt-px grid grid-cols-3 gap-px border-x border-b hairline bg-border">
-            <SimStat label="Risk" value={fmt(sim.risk_amount)} />
-            <SimStat label="Reward" value={fmt(sim.reward_amount)} />
-            <SimStat label="R:R" value={`1:${sim.risk_reward.toFixed(1)}`} accentColor="text-signal" />
+          <div className="sim-stats">
+            <div className="sim-stat"><div className="l">Risk</div><div className="v mono tabular">{fmt(sim.risk_amount)}</div></div>
+            <div className="sim-stat"><div className="l">Reward</div><div className="v mono tabular">{fmt(sim.reward_amount)}</div></div>
+            <div className="sim-stat"><div className="l">R:R</div><div className="v mono tabular accent">1:{sim.risk_reward.toFixed(1)}</div></div>
           </div>
 
-          <div className="mt-8 border hairline bg-panel p-6">
-            <h3 className="mb-3 text-data-sm text-text-secondary">Trade Autopsy</h3>
-            <p className="mb-4 text-sm text-text-secondary">
-              Record the actual outcome to close the loop — this feeds the factor-weight
-              self-improvement update.
-            </p>
-            <div className="flex items-center gap-3">
+          <div className="autopsy-box">
+            <h3>Trade Autopsy</h3>
+            <p>Record the actual outcome to close the loop — this feeds the factor-weight self-improvement update.</p>
+            <div className="autopsy-row">
               <input
                 type="number"
                 step="0.01"
                 placeholder="Actual return %"
                 value={actualReturn}
                 onChange={(e) => setActualReturn(e.target.value)}
-                className="w-40 border hairline bg-base px-3 py-2 font-mono text-data-sm text-text-primary outline-none focus:border-signal"
+                className="autopsy-input mono"
               />
-              <button
-                onClick={closeOutcome}
-                className="border border-border-bright px-4 py-2 font-mono text-data-sm text-text-primary hover:border-signal hover:text-signal"
-              >
-                Close & record outcome
-              </button>
+              <button onClick={closeOutcome} className="autopsy-btn mono">Close & record outcome</button>
             </div>
             {outcomeResult && (
-              <p className="mt-4 font-mono text-data-sm text-text-secondary">
+              <p style={{ marginTop: 16, fontSize: 13, color: "var(--text-secondary)" }} className="mono">
                 Prediction error: {(outcomeResult.prediction_error_pct * 100).toFixed(2)}%
               </p>
             )}
           </div>
         </>
       )}
-    </div>
-  );
-}
-
-function SimStat({ label, value, accentColor }: { label: string; value: string; accentColor?: string }) {
-  return (
-    <div className="bg-base px-5 py-4">
-      <div className="text-data-sm text-text-muted">{label}</div>
-      <div className={`mt-1 font-mono text-data-md tabular ${accentColor ?? "text-text-primary"}`}>{value}</div>
     </div>
   );
 }

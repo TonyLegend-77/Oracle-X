@@ -150,6 +150,15 @@ CREATE TABLE IF NOT EXISTS backtest_results (
 );
 CREATE INDEX IF NOT EXISTS idx_backtest_run ON backtest_results (run_id);
 
+CREATE TABLE IF NOT EXISTS job_status (
+    job_name        VARCHAR(50) PRIMARY KEY,
+    last_run_at     TIMESTAMPTZ,
+    last_success_at TIMESTAMPTZ,
+    last_error      TEXT,
+    last_result     TEXT,
+    run_count       INTEGER DEFAULT 0
+);
+
 -- seed default factor weights (Alpha Score composition from spec)
 INSERT INTO factor_weights (factor_name, weight, update_reason) VALUES
     ('cross_market_displacement', 0.30, 'initial seed'),

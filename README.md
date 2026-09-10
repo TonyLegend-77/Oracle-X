@@ -111,6 +111,38 @@ zoomable, correlation-colored edges. `components/CausalChain.tsx` renders
 the vertical NVDA→Semiconductors→AMD-style propagation sequence from spec
 section 23 as a companion panel on the Market Map page.
 
+## Deploying (Railway + Vercel)
+
+**Backend on Railway:**
+1. New Project → Deploy from GitHub repo → set root directory to `backend`
+2. Add a Postgres plugin to the same project (Railway sets `DATABASE_URL` automatically)
+3. Set environment variables: `BITGET_API_KEY`, `BITGET_API_SECRET`,
+   `BITGET_API_PASSPHRASE`, `QWEN_API_KEY`, `NEWSAPI_KEY` (see `.env.example`
+   for the full list — `DATABASE_URL` and `PORT` are set by Railway itself,
+   don't set those manually)
+4. Railway auto-detects the `Procfile` (`web: uvicorn app.main:app --host
+   0.0.0.0 --port $PORT`) — no separate start command needed
+5. Schema applies itself on first boot (`app/db_init.py`, idempotent —
+   safe to redeploy repeatedly, no manual `psql` step needed)
+6. Once deployed, copy the Railway-generated public URL (e.g.
+   `https://oracle-x-production.up.railway.app`)
+
+**Frontend on Vercel:**
+1. Import the GitHub repo, set root directory to `frontend`
+2. Set `NEXT_PUBLIC_API_BASE` to the Railway backend URL from step 6 above
+3. Deploy
+
+**After both are live:** the backend now seeds the `assets` table and starts
+every ingestion/pipeline job automatically on boot (`app/scheduler.py`) —
+no manual `python -m app.jobs.X` invocation needed. Schedule: `seed_assets`
+runs once at startup, `ingest_market_data` hourly, `ingest_events` every
+15 min, `run_pipeline` every 10 min, `track_portfolio` every 30 min. Each
+job is wrapped so a failure (missing API key, bad credentials, rate limit)
+is logged and skipped rather than crashing the server — check Railway's
+deploy logs for `[scheduler] ... failed` lines if data isn't showing up
+after a few minutes; that'll tell you which credential is missing or wrong
+rather than leaving you guessing.
+
 ## Build status (against the 14-day plan)
 
 - [x] Days 1-2 — repo foundation, schema, DB models, config, Bitget/Qwen client skeletons

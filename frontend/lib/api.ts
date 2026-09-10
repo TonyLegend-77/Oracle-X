@@ -15,6 +15,11 @@ export type Regime = {
   qqq_trend?: number;
 };
 
+export type AgentReasoning = {
+  narrator: { agent: string; text: string } | null;
+  risk_analyst: { agent: string; recommendation: string | null; reasoning: string | null } | null;
+};
+
 export type Signal = {
   id: number;
   asset: string;
@@ -31,6 +36,7 @@ export type Signal = {
   status: string;
   timestamp: string;
   execution_url: string | null;
+  agent_reasoning: AgentReasoning;
 };
 
 export type MarketMapData = {
@@ -63,6 +69,27 @@ export type SimulationResult = {
   risk_reward: number;
 };
 
+export type NewsItem = {
+  id: number;
+  timestamp: string;
+  asset: string | null;
+  event_type: string;
+  headline: string;
+  source: string | null;
+  sentiment: "bullish" | "bearish" | "neutral" | null;
+  magnitude: number | null;
+  interpreted: boolean;
+};
+
+export type JobStatusItem = {
+  job_name: string;
+  last_run_at: string | null;
+  last_success_at: string | null;
+  last_error: string | null;
+  run_count: number;
+  healthy: boolean;
+};
+
 export const api = {
   liveMarket: () => get<MarketTick[]>("/market/live"),
   regime: () => get<Regime>("/market/regime"),
@@ -77,4 +104,7 @@ export const api = {
     id: number,
     body: { actual_return_pct: number; result_summary?: string; correct_factors?: string[]; missed_factors?: string[] }
   ) => post<{ prediction_error_pct: number }>(`/outcomes/${id}/close`, body),
+  news: (limit = 30) => get<NewsItem[]>(`/news/recent?limit=${limit}`),
+  jobStatus: () => get<JobStatusItem[]>("/jobs/status"),
+  triggerJob: (name: string) => post<{ triggered: string }>(`/jobs/trigger/${name}`),
 };

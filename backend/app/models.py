@@ -144,6 +144,16 @@ class BacktestResult(Base):
     created_at = Column(TIMESTAMP(timezone=True), default=datetime.utcnow)
 
 
+class JobStatus(Base):
+    __tablename__ = "job_status"
+    job_name = Column(String(50), primary_key=True)
+    last_run_at = Column(TIMESTAMP(timezone=True))
+    last_success_at = Column(TIMESTAMP(timezone=True))
+    last_error = Column(Text)
+    last_result = Column(Text)
+    run_count = Column(Integer, default=0)
+
+
 class DeliveryLog(Base):
     __tablename__ = "delivery_log"
     id = Column(BigInteger, primary_key=True)

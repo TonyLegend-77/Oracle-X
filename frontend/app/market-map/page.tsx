@@ -25,50 +25,50 @@ export default function MarketMapPage() {
     .map((n) => n.id);
 
   return (
-    <div className="flex h-full">
-      <div className="flex-1 border-r hairline">
+    <div className="flow-layout">
+      <div className="flow-map">
         {map && map.nodes.length > 0 ? (
           <MarketMap data={map} activePath={activePath} />
         ) : (
-          <div className="flex h-full items-center justify-center text-data-sm text-text-muted">
+          <div style={{ display: "flex", height: "100%", alignItems: "center", justifyContent: "center", fontSize: 13, color: "var(--text-muted)" }}>
             No relationship data yet — run the pipeline to populate the graph
           </div>
         )}
       </div>
 
-      <div className="flex w-96 shrink-0 flex-col">
-        <div className="border-b hairline px-6 py-3">
-          <span className="text-data-sm text-text-secondary">Information Flow</span>
-        </div>
+      <div className="flow-side">
+        <div className="panel-head"><span>Information Flow</span></div>
 
-        <div className="flex gap-2 overflow-x-auto border-b hairline px-4 py-2">
+        <div className="chip-row">
           {signals.map((s) => (
             <button
               key={s.id}
               onClick={() => setSelected(s)}
-              className={`shrink-0 border px-2.5 py-1 font-mono text-data-sm ${
-                selected?.id === s.id
-                  ? "border-signal text-signal"
-                  : "border-border text-text-secondary hover:text-text-primary"
-              }`}
+              className={`chip mono ${selected?.id === s.id ? "active" : ""}`}
             >
               {s.asset}
             </button>
           ))}
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 py-6">
-          {selected ? (
-            <>
-              <CausalChain signal={selected} />
-              {selected.narrative && (
-                <p className="mt-6 text-sm leading-relaxed text-text-secondary">{selected.narrative}</p>
-              )}
-            </>
-          ) : (
-            <p className="text-data-sm text-text-muted">Select a signal to see its causal chain</p>
-          )}
-        </div>
+        {selected ? (
+          <>
+            <CausalChain signal={selected} />
+      {selected.narrative && (
+          <div style={{ padding: "0 24px 24px" }}>
+            <div className="agent-tag">
+              <span className="qdot" />
+              Qwen — Narrator
+            </div>
+            <p className="agent-text">{selected.narrative}</p>
+          </div>
+        )}
+          </>
+        ) : (
+          <p style={{ padding: 20, fontSize: 13, color: "var(--text-muted)" }}>
+            Select a signal to see its causal chain
+          </p>
+        )}
       </div>
     </div>
   );

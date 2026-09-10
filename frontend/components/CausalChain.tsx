@@ -25,22 +25,14 @@ export default function CausalChain({ signal }: { signal: Signal }) {
   ].filter(Boolean) as { label: string; sub: string; kind: "event" | "mid" | "result" }[];
 
   return (
-    <div className="flex flex-col items-center py-2">
+    <div className="chain">
       {steps.map((step, i) => (
-        <div key={i} className="flex flex-col items-center">
-          <div
-            className={`border px-4 py-2 text-center font-mono text-data-sm ${
-              step.kind === "result"
-                ? "border-signal/50 bg-signal/10 text-signal"
-                : step.kind === "event"
-                ? "border-border-bright bg-panel text-text-primary"
-                : "border-border bg-base text-text-secondary"
-            }`}
-          >
+        <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <div className={`chain-step ${step.kind} mono`}>
             <div>{step.label}</div>
-            <div className="mt-0.5 text-[11px] text-text-muted">{step.sub}</div>
+            <div className="sub">{step.sub}</div>
           </div>
-          {i < steps.length - 1 && <div className="h-6 w-px bg-border" />}
+          {i < steps.length - 1 && <div className="chain-connector" />}
         </div>
       ))}
     </div>

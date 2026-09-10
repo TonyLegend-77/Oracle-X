@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import routes_signals, routes_market, routes_simulate, routes_backtest
+from app.api import routes_signals, routes_market, routes_simulate, routes_backtest, routes_jobs, routes_news
 from app.db_init import apply_schema
 from app.scheduler import start_background_jobs
 
@@ -17,6 +17,8 @@ app.include_router(routes_signals.router)
 app.include_router(routes_market.router)
 app.include_router(routes_simulate.router)
 app.include_router(routes_backtest.router)
+app.include_router(routes_jobs.router)
+app.include_router(routes_news.router)
 
 
 @app.on_event("startup")

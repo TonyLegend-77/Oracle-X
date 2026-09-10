@@ -62,6 +62,9 @@ def log_delivery(signal_id: int, body: DeliveryEvent, db: Session = Depends(get_
 
 def _serialize(s: Signal, db: Session) -> dict:
     asset = db.query(Asset).get(s.asset_id)
+    reason = s.reason_json or {}
+    risk_opinion = reason.get("risk_analyst_opinion")
+
     return {
         "id": s.id,
         "asset": asset.symbol if asset else None,
@@ -78,4 +81,18 @@ def _serialize(s: Signal, db: Session) -> dict:
         "status": s.status,
         "timestamp": s.timestamp.isoformat() if s.timestamp else None,
         "execution_url": config.bitget_execution_url(asset.symbol, asset.asset_type) if asset else None,
+        # Explicit, attributed agent reasoning — surfaced separately from
+        # the raw reason_json blob so the frontend can show *which* Qwen
+        # agent produced each piece of reasoning, not just the text.
+        "agent_reasoning": {
+            "narrator": {
+                "agent": "Qwen — Narrator",
+                "text": s.narrative,
+            } if s.narrative else None,
+            "risk_analyst": {
+                "agent": "Qwen — Risk Analyst",
+                "recommendation": risk_opinion.get("recommendation") if risk_opinion else None,
+                "reasoning": risk_opinion.get("reasoning") if risk_opinion else None,
+            } if risk_opinion else None,
+        },
     }

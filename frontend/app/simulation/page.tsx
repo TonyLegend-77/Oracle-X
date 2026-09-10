@@ -12,7 +12,7 @@ import SimulationView from "@/components/SimulationView";
 
 export default function SimulationPage() {
   return (
-    <Suspense fallback={<div className="p-6 text-data-sm text-text-muted">Loading…</div>}>
+    <Suspense fallback={<div style={{ padding: 24, fontSize: 13, color: "var(--text-muted)" }}>Loading…</div>}>
       <SimulationView />
     </Suspense>
   );

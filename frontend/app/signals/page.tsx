@@ -16,40 +16,37 @@ export default function SignalsPage() {
     api.signals().then(setSignals).catch(() => {});
   }, []);
 
-  const filtered =
-    filter === "ALL" ? signals : signals.filter((s) => s.risk_status === filter);
+  const filtered = filter === "ALL" ? signals : signals.filter((s) => s.risk_status === filter);
 
   async function simulate(id: number) {
     router.push(`/simulation?signal=${id}`);
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-6 flex items-center gap-2">
-        {FILTERS.map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`border px-3 py-1.5 font-mono text-data-sm ${
-              filter === f
-                ? "border-signal text-signal"
-                : "border-border text-text-secondary hover:text-text-primary"
-            }`}
-          >
-            {f}
-          </button>
-        ))}
+    <>
+      <div className="toolbar">
+        <div className="filter-group">
+          {FILTERS.map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`filter-chip mono ${filter === f ? "active" : ""}`}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
       </div>
 
       {filtered.length === 0 ? (
-        <p className="text-data-sm text-text-muted">No signals match this filter.</p>
+        <p style={{ fontSize: 13, color: "var(--text-muted)" }}>No signals match this filter.</p>
       ) : (
-        <div className="grid grid-cols-2 gap-4 xl:grid-cols-3">
+        <div className="signals-grid">
           {filtered.map((s) => (
             <OpportunityCard key={s.id} signal={s} onSimulate={() => simulate(s.id)} />
           ))}
         </div>
       )}
-    </div>
+    </>
   );
 }

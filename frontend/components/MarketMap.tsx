@@ -22,14 +22,14 @@ type Edge = {
 };
 
 const SECTOR_COLOR: Record<string, string> = {
-  semiconductors: "#E8A33D",
-  big_tech: "#8B93A7",
-  auto_tech: "#4FD1C5",
-  media_tech: "#8B93A7",
-  crypto_equity: "#F0554C",
-  software: "#8B93A7",
-  crypto: "#4FD1C5",
-  index: "#565E6D",
+  semiconductors: "#F0A93E",
+  big_tech: "#9AA2B2",
+  auto_tech: "#4FE0C9",
+  media_tech: "#9AA2B2",
+  crypto_equity: "#FF6B60",
+  software: "#9AA2B2",
+  crypto: "#4FE0C9",
+  index: "#5C6474",
 };
 
 export default function MarketMap({ data, activePath }: { data: MarketMapData; activePath?: number[] }) {
@@ -52,7 +52,7 @@ export default function MarketMap({ data, activePath }: { data: MarketMapData; a
 
     const nodes: Node[] = data.nodes.map((n) => ({
       ...n,
-      radius: 10 + Math.min(Math.abs(n.change_pct) * 200, 18),
+      radius: 12 + Math.min(Math.abs(n.change_pct) * 200, 18),
     }));
     const edges: Edge[] = data.edges
       .filter((e) => Math.abs(e.correlation) > 0.25)
@@ -60,6 +60,15 @@ export default function MarketMap({ data, activePath }: { data: MarketMapData; a
 
     const svg = select(svgRef.current);
     svg.selectAll("*").remove();
+
+    const defs = svg.append("defs");
+    nodes.forEach((n) => {
+      const color = SECTOR_COLOR[n.sector ?? ""] ?? "#5C6474";
+      const isActive = activePath?.includes(n.id);
+      const grad = defs.append("radialGradient").attr("id", `glow-${n.id}`);
+      grad.append("stop").attr("offset", "0%").attr("stop-color", color).attr("stop-opacity", isActive ? 0.55 : 0.3);
+      grad.append("stop").attr("offset", "100%").attr("stop-color", color).attr("stop-opacity", 0);
+    });
 
     const g = svg.append("g");
 
@@ -77,18 +86,18 @@ export default function MarketMap({ data, activePath }: { data: MarketMapData; a
           .distance((d: any) => 140 - Math.abs(d.correlation) * 80)
           .strength((d: any) => Math.abs(d.correlation) * 0.6)
       )
-      .force("charge", forceManyBody().strength(-220))
+      .force("charge", forceManyBody().strength(-260))
       .force("center", forceCenter(width / 2, height / 2))
-      .force("collide", forceCollide<Node>((d) => d.radius + 14));
+      .force("collide", forceCollide<Node>((d) => d.radius + 18));
 
     const link = g
       .append("g")
       .selectAll<SVGLineElement, Edge>("line")
       .data(edges)
       .join("line")
-      .attr("stroke", (d) => (d.correlation >= 0 ? "#4FD1C5" : "#F0554C"))
-      .attr("stroke-opacity", (d) => 0.15 + Math.abs(d.correlation) * 0.35)
-      .attr("stroke-width", (d) => 0.5 + Math.abs(d.correlation) * 2);
+      .attr("stroke", (d) => (d.correlation >= 0 ? "#4FE0C9" : "#FF6B60"))
+      .attr("stroke-opacity", (d) => 0.18 + Math.abs(d.correlation) * 0.35)
+      .attr("stroke-width", (d) => 0.6 + Math.abs(d.correlation) * 2);
 
     const dragBehavior = drag<SVGGElement, Node>()
       .on("start", (event, d) => {
@@ -114,35 +123,43 @@ export default function MarketMap({ data, activePath }: { data: MarketMapData; a
       .attr("cursor", "grab")
       .call(dragBehavior as any);
 
+    // Glow halo
+    node
+      .append("circle")
+      .attr("r", (d) => d.radius + 14)
+      .attr("fill", (d) => `url(#glow-${d.id})`);
+
+    // Core node
     node
       .append("circle")
       .attr("r", (d) => d.radius)
-      .attr("fill", "#14171C")
-      .attr("stroke", (d) => SECTOR_COLOR[d.sector ?? ""] ?? "#565E6D")
-      .attr("stroke-width", (d) => (activePath?.includes(d.id) ? 2.5 : 1.5));
+      .attr("fill", "#14161b")
+      .attr("stroke", (d) => SECTOR_COLOR[d.sector ?? ""] ?? "#5C6474")
+      .attr("stroke-width", (d) => (activePath?.includes(d.id) ? 2.5 : 1.6));
 
     node
       .append("circle")
       .attr("r", 3)
-      .attr("fill", (d) => (d.change_pct >= 0 ? "#4FD1C5" : "#F0554C"));
+      .attr("fill", (d) => (d.change_pct >= 0 ? "#4FE0C9" : "#FF6B60"));
 
     node
       .append("text")
       .text((d) => d.symbol)
       .attr("x", 0)
-      .attr("y", (d) => d.radius + 14)
+      .attr("y", (d) => d.radius + 16)
       .attr("text-anchor", "middle")
-      .attr("fill", "#E8EAED")
+      .attr("fill", "#F2F3F5")
       .attr("font-family", "var(--font-plex-mono)")
+      .attr("font-weight", 500)
       .attr("font-size", 11);
 
     node
       .append("text")
       .text((d) => `${d.change_pct >= 0 ? "+" : ""}${(d.change_pct * 100).toFixed(1)}%`)
       .attr("x", 0)
-      .attr("y", (d) => d.radius + 27)
+      .attr("y", (d) => d.radius + 29)
       .attr("text-anchor", "middle")
-      .attr("fill", (d) => (d.change_pct >= 0 ? "#4FD1C5" : "#F0554C"))
+      .attr("fill", (d) => (d.change_pct >= 0 ? "#4FE0C9" : "#FF6B60"))
       .attr("font-family", "var(--font-plex-mono)")
       .attr("font-size", 10);
 
@@ -161,15 +178,11 @@ export default function MarketMap({ data, activePath }: { data: MarketMapData; a
   }, [data, dimensions, activePath]);
 
   return (
-    <div className="relative h-full w-full">
-      <svg ref={svgRef} width={dimensions.width} height={dimensions.height} className="h-full w-full" />
-      <div className="pointer-events-none absolute bottom-4 left-4 flex gap-4 text-data-sm text-text-muted">
-        <span className="flex items-center gap-1.5">
-          <span className="h-1.5 w-4 bg-long/60" /> positive correlation
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="h-1.5 w-4 bg-short/60" /> negative correlation
-        </span>
+    <div style={{ position: "relative", height: "100%", width: "100%" }}>
+      <svg ref={svgRef} width={dimensions.width} height={dimensions.height} style={{ height: "100%", width: "100%" }} />
+      <div className="map-legend">
+        <span><span className="sw" style={{ background: "rgba(79,224,201,0.7)" }} /> positive correlation</span>
+        <span><span className="sw" style={{ background: "rgba(255,107,96,0.7)" }} /> negative correlation</span>
       </div>
     </div>
   );
